@@ -6,5 +6,6 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     MONGO_URI: str = "mongodb+srv://vishalroad2tech_db_user:vishal%40123@p1.qshu0ys.mongodb.net/campusconnect?retryWrites=true&w=majority"
     DB_NAME: str = "campusconnect"
+    GEMINI_API_KEY: str = "AIzaSyCXvZUEE3ZjwEA57PayMNdduQ4Edl3o-G8"
 
 settings = Settings()

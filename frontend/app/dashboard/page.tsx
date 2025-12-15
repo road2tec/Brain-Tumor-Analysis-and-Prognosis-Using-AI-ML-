@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import api from '@/lib/api';
-import { Upload, X, FileImage, Activity, History, Clock } from 'lucide-react';
+import { Upload, X, FileImage, Activity, History, Clock, Sparkles, Bot, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
 
 interface Prediction {
@@ -25,6 +26,18 @@ export default function Dashboard() {
     const [result, setResult] = useState<Prediction | null>(null);
     const [history, setHistory] = useState<Prediction[]>([]);
     const [view, setView] = useState<'analyze' | 'history'>('analyze');
+    const [treatmentPlan, setTreatmentPlan] = useState<string | null>(null);
+    const [isGettingTreatment, setIsGettingTreatment] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    const copyToClipboard = () => {
+        if (treatmentPlan) {
+            navigator.clipboard.writeText(treatmentPlan);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -72,14 +85,25 @@ export default function Dashboard() {
         if (!file) return;
 
         setIsAnalyzing(true);
+        setTreatmentPlan(null);
         const formData = new FormData();
         formData.append('file', file);
 
         try {
             const res = await api.post('/predict', formData);
             setResult(res.data);
-            // Refresh history if we were to switch tabs, but we are on analyze tab
-            // We could update local history state if we want instant update
+
+            if (res.data.prediction !== "No Tumor") {
+                setIsGettingTreatment(true);
+                try {
+                    const treatmentRes = await api.post('/treatment', { disease: res.data.prediction });
+                    setTreatmentPlan(treatmentRes.data.treatment_plan);
+                } catch (err) {
+                    console.error("Failed to get treatment plan", err);
+                } finally {
+                    setIsGettingTreatment(false);
+                }
+            }
         } catch (error) {
             console.error("Prediction failed", error);
             alert("Analysis failed. Please try again.");
@@ -92,6 +116,7 @@ export default function Dashboard() {
         setFile(null);
         setPreview(null);
         setResult(null);
+        setTreatmentPlan(null);
     };
 
     if (isLoading || !user) return null; // Or loading spinner
@@ -233,6 +258,65 @@ export default function Dashboard() {
                                             <strong>Disclaimer:</strong> AI-based results are for assistance only and must be verified by a medical professional.
                                         </p>
                                     </div>
+
+                                    {isGettingTreatment && (
+                                        <div className="mt-6 p-6 rounded-xl bg-white/5 border border-white/10 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer" style={{ transform: 'skewX(-20deg) translateX(-150%)' }} />
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <Bot className="w-6 h-6 text-primary animate-pulse" />
+                                                <h3 className="text-lg font-semibold text-white">Generating Treatment Plan...</h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <div className="h-4 bg-white/10 rounded w-3/4 animate-pulse" />
+                                                <div className="h-4 bg-white/10 rounded w-full animate-pulse" />
+                                                <div className="h-4 bg-white/10 rounded w-5/6 animate-pulse" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {treatmentPlan && (
+                                        <div className="mt-6 rounded-xl overflow-hidden border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent transition-all duration-500 ease-in-out">
+                                            <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                                                <div className="flex items-center gap-2">
+                                                    <Sparkles className="w-5 h-5 text-primary" />
+                                                    <h3 className="font-semibold text-white">AI Treatment Recommendations</h3>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            copyToClipboard();
+                                                        }}
+                                                        className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                                                        title="Copy to clipboard"
+                                                    >
+                                                        {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                                                    </button>
+                                                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                                                </div>
+                                            </div>
+
+                                            {isExpanded && (
+                                                <div className="p-6 text-gray-300">
+                                                    <ReactMarkdown
+                                                        components={{
+                                                            h1: ({ node, ...props }) => <h1 className="text-xl font-bold text-white mb-4 mt-2" {...props} />,
+                                                            h2: ({ node, ...props }) => <h2 className="text-lg font-semibold text-primary mb-3 mt-6 first:mt-0" {...props} />,
+                                                            h3: ({ node, ...props }) => <h3 className="text-base font-semibold text-white mb-2 mt-4" {...props} />,
+                                                            p: ({ node, ...props }) => <p className="mb-4 leading-relaxed text-gray-300 last:mb-0" {...props} />,
+                                                            ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-4 space-y-2 marker:text-primary" {...props} />,
+                                                            ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-4 space-y-2 marker:text-primary" {...props} />,
+                                                            li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                                            strong: ({ node, ...props }) => <strong className="font-semibold text-white" {...props} />,
+                                                            blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-primary/40 pl-4 py-1 my-4 bg-primary/5 rounded-r italic" {...props} />,
+                                                        }}
+                                                    >
+                                                        {treatmentPlan}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-8 rounded-2xl bg-white/5 border border-dashed border-white/10 text-gray-500">

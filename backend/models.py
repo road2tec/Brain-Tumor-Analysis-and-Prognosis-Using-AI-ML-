@@ -29,3 +29,11 @@ class UserInDB(BaseModel):
     name: str
     email: str
     hashed_password: str
+
+class TreatmentRequest(BaseModel):
+    disease: str
+
+class TreatmentResponse(BaseModel):
+    disease: str
+    treatment_plan: str
+

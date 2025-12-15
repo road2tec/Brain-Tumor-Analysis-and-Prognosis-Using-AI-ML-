@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta, datetime
 from typing import List
 
-from . import models, auth, database, ml_model
+from . import models, auth, database, ml_model, gemini_service
 from .config import settings
 
 app = FastAPI(title="Brain Tumor Detection API")
@@ -136,3 +136,8 @@ async def get_history(current_user: models.UserInDB = Depends(get_current_user))
             "timestamp": doc["timestamp"]
         })
     return history
+
+@app.post("/treatment", response_model=models.TreatmentResponse)
+async def get_treatment_plan(request: models.TreatmentRequest, current_user: models.UserInDB = Depends(get_current_user)):
+    treatment_plan = gemini_service.get_treatment_plan(request.disease)
+    return models.TreatmentResponse(disease=request.disease, treatment_plan=treatment_plan)
