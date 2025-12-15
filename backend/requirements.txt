@@ -9,3 +9,4 @@ python-multipart
 pillow
 numpy
 google-generativeai
+python-dotenv
