@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+torch
+torchvision
+pymongo
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+pillow
+numpy
