@@ -93,17 +93,18 @@ export default function Dashboard() {
             const res = await api.post('/predict', formData);
             setResult(res.data);
 
-            if (res.data.prediction !== "No Tumor") {
-                setIsGettingTreatment(true);
-                try {
-                    const treatmentRes = await api.post('/treatment', { disease: res.data.prediction });
-                    setTreatmentPlan(treatmentRes.data.treatment_plan);
-                } catch (err) {
-                    console.error("Failed to get treatment plan", err);
-                } finally {
-                    setIsGettingTreatment(false);
-                }
-            }
+            // Treatment plan feature is currently disabled
+            // if (res.data.prediction !== "No Tumor") {
+            //     setIsGettingTreatment(true);
+            //     try {
+            //         const treatmentRes = await api.post('/treatment', { disease: res.data.prediction });
+            //         setTreatmentPlan(treatmentRes.data.treatment_plan);
+            //     } catch (err) {
+            //         console.error("Failed to get treatment plan", err);
+            //     } finally {
+            //         setIsGettingTreatment(false);
+            //     }
+            // }
         } catch (error) {
             console.error("Prediction failed", error);
             alert("Analysis failed. Please try again.");
@@ -255,10 +256,11 @@ export default function Dashboard() {
 
                                     <div className="mt-8 border-l-2 border-yellow-500/50 pl-4 py-2 bg-yellow-500/5 rounded-r-lg">
                                         <p className="text-yellow-200/80 text-sm">
-                                            <strong>Disclaimer:</strong> AI-based results are for assistance only and must be verified by a medical professional.
+                                            <strong>Disclaimer:</strong> ML-based results are for assistance only and must be verified by a medical professional.
                                         </p>
                                     </div>
 
+                                    {/* Treatment plan loading state - currently disabled
                                     {isGettingTreatment && (
                                         <div className="mt-6 p-6 rounded-xl bg-white/5 border border-white/10 relative overflow-hidden">
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent shimmer" style={{ transform: 'skewX(-20deg) translateX(-150%)' }} />
@@ -273,13 +275,15 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                     )}
+                                    */}
 
+                                    {/* Treatment plan display - currently disabled
                                     {treatmentPlan && (
                                         <div className="mt-6 rounded-xl overflow-hidden border border-primary/20 bg-gradient-to-b from-primary/5 to-transparent transition-all duration-500 ease-in-out">
                                             <div className="p-4 bg-white/5 border-b border-white/5 flex justify-between items-center cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
                                                 <div className="flex items-center gap-2">
                                                     <Sparkles className="w-5 h-5 text-primary" />
-                                                    <h3 className="font-semibold text-white">AI Treatment Recommendations</h3>
+                                                    <h3 className="font-semibold text-white">ML Treatment Recommendations</h3>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <button
@@ -317,6 +321,7 @@ export default function Dashboard() {
                                             )}
                                         </div>
                                     )}
+                                    */}
                                 </div>
                             ) : (
                                 <div className="h-full min-h-[400px] flex flex-col items-center justify-center p-8 rounded-2xl bg-white/5 border border-dashed border-white/10 text-gray-500">
