@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 interface User {
     name: string;
     email: string;
+    role: string;
 }
 
 interface AuthContextType {
@@ -41,8 +42,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const res = await api.get('/users/me');
             setUser(res.data);
-        } catch (error) {
-            console.error("Failed to fetch user", error);
+        } catch (error: any) {
+            if (error.response?.status !== 401) {
+                console.error("Failed to fetch user", error);
+            } else {
+                console.warn("Session expired, logging out.");
+            }
             logout();
         } finally {
             setIsLoading(false);

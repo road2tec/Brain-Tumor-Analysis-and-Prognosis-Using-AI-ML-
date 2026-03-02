@@ -10,5 +10,6 @@ class Settings:
     MONGO_URI: str = os.getenv("MONGO_URI")
     DB_NAME: str = "campusconnect"
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY")
+    IPGEOLOCATION_API_KEY: str = os.getenv("IPGEOLOCATION_API_KEY")
 
 settings = Settings()

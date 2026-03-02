@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 import bcrypt
-from .config import settings
+import secrets
+import string
+from config import settings
 
 def verify_password(plain_password, hashed_password):
     # Check if hashed_password is str, convert to bytes
@@ -27,3 +29,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
+def generate_random_password(length: int = 12) -> str:
+    """Generate a secure random password"""
+    characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    return password
